@@ -6,7 +6,7 @@ A small demo showing an approach to using a Logic App to transform a screenshot 
 
 
 ## How to demo
-1. [Create an Azure OpenAI resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource) in a [region that supports GPT-4 Vision.](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models#gpt-4-and-gpt-4-turbo-preview-model-availability)
+1. [Create an Azure OpenAI resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource) in a [region that supports GPT-4 Vision.](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models#gpt-4-and-gpt-4-turbo-preview-model-availability) Create a deployment using **GPT-4** with the **vision-preview** model version.
 1. Deploy the Logic App using the button above or the [templates within the repo](./deploy/consumption/deploy.bicep), filling in the Azure OpenAI [resource key and endpoint](https://learn.microsoft.com/en-us/azure/ai-services/openai/chatgpt-quickstart?tabs=command-line%2Cpython-new&pivots=rest-api#set-up), and the [deployment name](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) for the GPT-4 vision deployment.
 1. Once created, navigate to the Logic App and open the designer. Copy the [invoke URL from the HTTP trigger](https://learn.microsoft.com/en-us/azure/connectors/media/connectors-native-reqres/generated-url-consumption.png).
 1. Ensure you have the REST Client add-on installed for VSCode. Update line 1 of [test.http](./test.http) to point to the Logic App, and click 'Send Request'. _It may take up to 60 seconds to return a result, so be patient!_
