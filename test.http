@@ -1,0 +1,6 @@
+@logicAppEndpoint = https://<<fillMeIn!>>
+
+POST {{logicAppEndpoint}} HTTP/1.1
+Content-Type: image/png
+
+< ./media/error-1.png

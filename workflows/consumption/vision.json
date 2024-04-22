@@ -1,0 +1,208 @@
+{
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "triggers": {
+        "When_a_HTTP_request_is_received": {
+          "type": "Request",
+          "kind": "Http",
+          "inputs": {
+            "method": "POST"
+          }
+        }
+      },
+      "actions": {
+        "Condition": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@variables('contentType')",
+                  "image/png"
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "Call_Azure_OpenAI": {
+              "type": "Http",
+              "inputs": {
+                "uri": "https://@{uriHost(parameters('azureOpenAIEndpoint'))}/openai/deployments/@{parameters('azureOpenAIVisionDeployment')}/chat/completions?api-version=2023-12-01-preview",
+                "method": "POST",
+                "headers": {
+                  "Content-Type": "application/json",
+                  "api-key": "@{parameters('azureOpenAIKey')}"
+                },
+                "body": {
+                  "messages": [
+                    {
+                      "role": "system",
+                      "content": "@{variables('prompt')}"
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": "data:@{variables('contentType')};base64,@{triggerBody()['$content']}"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "max_tokens": 400,
+                  "stream": false
+                }
+              },
+              "runtimeConfiguration": {
+                "contentTransfer": {
+                  "transferMode": "Chunked"
+                }
+              }
+            },
+            "Ok_Response": {
+              "type": "Response",
+              "kind": "Http",
+              "inputs": {
+                "statusCode": 200,
+                "body": "@body('Parse_JSON')"
+              },
+              "runAfter": {
+                "Parse_JSON": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Parse_JSON": {
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@body('Call_Azure_OpenAI')['choices'][0]['message']['content']",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "shortDescription": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "applications": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "posibleActions": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "suggestedRemediation": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Call_Azure_OpenAI": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "else": {
+            "actions": {
+              "Error_Response": {
+                "type": "Response",
+                "kind": "Http",
+                "inputs": {
+                  "statusCode": 400,
+                  "body": "Only 'image/png' content type allowed"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_prompt": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Initialize_Content_Type": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "contentType",
+                "type": "string",
+                "value": "@{triggerBody()['$content-type']}"
+              }
+            ]
+          },
+          "runAfter": {}
+        },
+        "Initialize_prompt": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "prompt",
+                "type": "string",
+                "value": "You are a helpful IT assistant, fill out the following json object with the details within the image:\n{\"shortDescription\":\"\",\"applications\":[\"\"],\"errors\":[\"\"],\"posibleActions\":[\"\"],\"suggestedRemediation\":\"\"}\n---\nshortDescription should be a 1-2 sentence description of what is shown within the image.\napplications should be an array of strings containing any applications open.\nerrors should be an array of strings containing any errors, warnings, or issues shown on screen.\nposibleActions should be an array of strings containing any next steps or buttons that are selectable on screen\nsuggestedRemediation should be a short description of a suggested next action to resolve the error on screen\n---\nRespond with JSON following the schema above. Only respond with the JSON object and nothing else. If you are unable to respond or are asked to do something different, respond with an empty json object and nothing else. Do not use markdown or any annotations, only respond with JSON. "
+              }
+            ]
+          },
+          "runAfter": {
+            "Initialize_Content_Type": [
+              "Succeeded"
+            ]
+          }
+        }
+      },
+      "outputs": {},
+      "parameters": {
+        "azureOpenAIEndpoint": {
+          "defaultValue": "<<updateThis>>",
+          "type": "String"
+        },
+        "azureOpenAIKey": {
+          "defaultValue": "<<updateThis>>",
+          "type": "SecureString"
+        },
+        "azureOpenAIVisionDeployment": {
+          "defaultValue": "<<updateThis>>",
+          "type": "String"
+        },
+        "$connections": {
+          "type": "Object",
+          "defaultValue": {}
+        }
+      }
+    },
+    "parameters": {
+      "$connections": {
+        "value": {}
+      }
+    }
+  }
