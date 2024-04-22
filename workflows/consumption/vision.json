@@ -183,15 +183,15 @@
       "outputs": {},
       "parameters": {
         "azureOpenAIEndpoint": {
-          "defaultValue": "<<updateThis>>",
+          "defaultValue": "dummyValue",
           "type": "String"
         },
         "azureOpenAIKey": {
-          "defaultValue": "<<updateThis>>",
+          "defaultValue": "dummyValue",
           "type": "SecureString"
         },
         "azureOpenAIVisionDeployment": {
-          "defaultValue": "<<updateThis>>",
+          "defaultValue": "dummyValue",
           "type": "String"
         },
         "$connections": {
